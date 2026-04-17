@@ -62,6 +62,25 @@ str(dados_sinasc_2)
 # KOTELCHUCK = 9 significa "não informado"   TPROBSON = 11 significa "não classificado por falta de informação"
 # veja o dicionário do SINASC para identificar qual o código das categorias de cada variável
 
+# Tratamento de valores ignorados / não informados
+
+dados_sinasc_2$KOTELCHUCK[dados_sinasc_2$KOTELCHUCK == 9] = NA
+dados_sinasc_2$TPROBSON[dados_sinasc_2$TPROBSON == 11] = NA
+dados_sinasc_2$IDANOMAL[dados_sinasc_2$IDANOMAL == 9] = NA
+
+dados_sinasc_2$ESTCIVMAE[dados_sinasc_2$ESTCIVMAE == 9] = NA
+dados_sinasc_2$GESTACAO[dados_sinasc_2$GESTACAO == 9] = NA
+dados_sinasc_2$GRAVIDEZ[dados_sinasc_2$GRAVIDEZ == 9] = NA
+dados_sinasc_2$PARTO[dados_sinasc_2$PARTO == 9] = NA
+
+dados_sinasc_2$SEXO[dados_sinasc_2$SEXO == 0] = NA
+
+dados_sinasc_2$ESCMAE2010[dados_sinasc_2$ESCMAE2010 == 9] = NA
+dados_sinasc_2$TPAPRESENT[dados_sinasc_2$TPAPRESENT == 9] = NA
+
+#Verificando a tarefa 5
+unique(dados_sinasc_2$KOTELCHUCK)
+unique(dados_sinasc_2$TPROBSON)
 
 # Tarefa 6. Atribuir legendas para as categorias das variáveis investigadas na etapa 4.
 # Exemplo: dados_sinasc_2$KOTELCHUCK = factor(dados_sinasc_2$KOTELCHUCK, levels = c(1,2,3,4,5), 
@@ -70,8 +89,37 @@ str(dados_sinasc_2)
 
 # ATENçÃO: 1. Na hora de escrever os labels, somente a primeira letra da palavra é maiúscula. Exemplo para SEXO: Feminino e Masculino
 #          2. Nesta Tarefa 6 não crie novas variáveis no banco de dados
-
-
+#KOTELCHUCK
+dados_sinasc_2$KOTELCHUCK = factor(dados_sinasc_2$KOTELCHUCK,
+                                   levels = c(1,2,3,4,5),
+                                   labels = c("Não realizou pré-natal", "Inadequado", "Intermediário", "Adequado", "Mais que adequado"))
+#sexo
+dados_sinasc_2$SEXO = factor(dados_sinasc_2$SEXO,
+                             levels = c(1,2),
+                             labels = c("Masculino", "Feminino"))
+#parto
+dados_sinasc_2$PARTO = factor(dados_sinasc_2$PARTO,
+                              levels = c(1,2),
+                              labels = c("Vaginal", "Cesário"))
+#gravidez
+dados_sinasc_2$GRAVIDEZ = factor(dados_sinasc_2$GRAVIDEZ,
+                                 levels = c(1,2,3),
+                                 labels = c("Única", "Dupla", "Tripla ou mais"))
+#gestacao
+dados_sinasc_2$GESTACAO = factor(dados_sinasc_2$GESTACAO,
+                                 levels = c(1,2,3,4,5,6),
+                                 labels = c("Menos de 22 semanas", "22 a 27 semanas", "28 a 31 semanas",
+                                            "32 a 36 semanas", "37 a 41 semanas", "42 semanas ou mais"))
+#ESTCIVMAE
+dados_sinasc_2$ESTCIVMAE = factor(dados_sinasc_2$ESTCIVMAE,
+                                  levels = c(1,2,3,4,5),
+                                  labels = c("Solteira", "Casada", "Viúva", "Separada/divorciada", "União estável"))
+#IDANOMAL
+dados_sinasc_2$IDANOMAL = factor(dados_sinasc_2$IDANOMAL,
+                                 levels = c(1,2),
+                                 labels = c("Sim", "Não"))
+#Verificando a tarefa 6
+str(dados_sinasc_2)
 # Tarefa 7. Categorizar as variáveis IDADEMAE, PESO e APGAR5
 # nova variável: dados_sinasc_2$F_PESO com PESO: < 2500: Baixo peso, >=2500 e < 4000: Peso normal, >= 4000: Macrossomia
 # nova variável dados_sinasc_2$F_IDADE com IDADEMAE: <15, 15-19, 20-24, 25-29, 30-34, 35-39, 40-44, 45-49, 50+
@@ -80,6 +128,28 @@ str(dados_sinasc_2)
 # Ao categorizar as variáveis, garantir que sejam transformadas em tipo fator
 
 
+# PESO
+dados_sinasc_2$F_PESO = cut(dados_sinasc_2$PESO,
+                            breaks = c(-Inf, 2500, 4000, Inf),
+                            labels = c("Baixo peso", "Peso normal", "Macrossomia"),
+                            right = FALSE)
+
+# IDADEMAE
+dados_sinasc_2$F_IDADE = cut(dados_sinasc_2$IDADEMAE,
+                             breaks = c(-Inf, 15, 20, 25, 30, 35, 40, 45, 50, Inf),
+                             labels = c("<15", "15-19", "20-24", "25-29", "30-34",
+                                        "35-39", "40-44", "45-49", "50+"),
+                             right = FALSE)
+
+# APGAR5
+dados_sinasc_2$F_APGAR5 = cut(dados_sinasc_2$APGAR5,
+                              breaks = c(-Inf, 7, Inf),
+                              labels = c("Baixo", "Normal"),
+                              right = FALSE)
+#Verificando a tarefa 7
+str(dados_sinasc_2$F_PESO)
+str(dados_sinasc_2$F_IDADE)
+str(dados_sinasc_2$F_APGAR5)
 # Tarefa 8. Agregar ao banco de dados_sinasc_2 as informações PESO_P10 e PESO_P90 a partir de Tabela_PIG_Brasil.csv
 # a Tabela PIG informa P10 e P90 dos pesos, de acordo com a idade gestacional
 # criar nova variável referente ao peso, de acordo com a idade gestacional, conforme indicado abaixo
