@@ -147,9 +147,6 @@ dados_sinasc_2$ESTCIVMAE = factor(dados_sinasc_2$ESTCIVMAE,
                                   labels = c("Solteira", "Casada", "Viúva", "Separada/divorciada", "União estável"))
 
 
-unique(dados_sinasc_2$ESTCIVMAE)
-table(dados_sinasc_2$ESTCIVMAE)
-
 #IDANOMAL
 dados_sinasc_2$IDANOMAL = factor(dados_sinasc_2$IDANOMAL,
                                  levels = c(1,2),
