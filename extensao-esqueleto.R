@@ -45,7 +45,7 @@ head(dados_sinasc_2)
 # 31: 268305    32: 56941     33: 236960    35: 634026     
 # 41: 160947    42: 97223     43: 148359
 # 50: 44142     51: 56673     52: 100672    53: 46122 
-table(substr(as.character(dados_BA$CODMUNRES), 1,2))
+table(substr(as.character(dados_sinasc_2$CODMUNRES), 1,2))
 
 
 # Exportar o arquivo com o nome dados_sinasc_2.csv
@@ -79,6 +79,7 @@ table(dados_sinasc_2$KOTELCHUCK)
 
 # Tratamento de valores ignorados / não informados
 
+dados_sinasc_2$LOCNASC[dados_sinasc_2$LOCNASC == 9] = NA
 dados_sinasc_2$KOTELCHUCK[dados_sinasc_2$KOTELCHUCK == 9] = NA
 dados_sinasc_2$TPROBSON[dados_sinasc_2$TPROBSON == 11] = NA
 dados_sinasc_2$IDANOMAL[dados_sinasc_2$IDANOMAL == 9] = NA
@@ -87,18 +88,22 @@ dados_sinasc_2$ESTCIVMAE[dados_sinasc_2$ESTCIVMAE == 9] = NA
 dados_sinasc_2$GESTACAO[dados_sinasc_2$GESTACAO == 9] = NA
 dados_sinasc_2$GRAVIDEZ[dados_sinasc_2$GRAVIDEZ == 9] = NA
 dados_sinasc_2$PARTO[dados_sinasc_2$PARTO == 9] = NA
-
+dados_sinasc_2$TPROBSON[dados_sinasc_2$TPROBSON == 11] = NA
 dados_sinasc_2$SEXO[dados_sinasc_2$SEXO == 0] = NA
-
+dados_sinasc_2$ESCMAE2010[dados_sinasc_2$ESCMAE2010 == 9] = NA
+dados_sinasc_2$RACACORMAE[dados_sinasc_2$RACACORMAE == 9] = NA
+dados_sinasc_2$TPAPRESENT[dados_sinasc_2$TPAPRESENT == 9] = NA
+dados_sinasc_2$PARIDADE[dados_sinasc_2$PARIDADE == 9] = NA
 dados_sinasc_2$ESCMAE2010[dados_sinasc_2$ESCMAE2010 == 9] = NA
 dados_sinasc_2$TPAPRESENT[dados_sinasc_2$TPAPRESENT == 9] = NA
-
+dados_sinasc_2$RACACOR[dados_sinasc_2$RACACOR == 9] = NA
 dados_sinasc_2$APGAR5[dados_sinasc_2$APGAR5 == 99] = NA
+dados_sinasc_2$APGAR5[dados_sinasc_2$APGAR5 == 99] = NA
+dados_sinasc_2$ESTCIVMAE[dados_sinasc_2$ESTCIVMAE %in% c(0,9)] = NA
+dados_sinasc_2$SEMAGESTAC[dados_sinasc_2$SEMAGESTAC == 99] = NA
 
 #Verificando a tarefa 5
-unique(dados_sinasc_2$KOTELCHUCK)
-unique(dados_sinasc_2$TPROBSON)
-
+str(dados_sinasc_2)
 # Tarefa 6. Atribuir legendas para as categorias das variáveis investigadas na etapa 4.
 # Exemplo: dados_sinasc_2$KOTELCHUCK = factor(dados_sinasc_2$KOTELCHUCK, levels = c(1,2,3,4,5), 
 # labels = c("Não realizou pré-natal", "Inadequado", "Intermediário", "Adequado",  
@@ -106,6 +111,11 @@ unique(dados_sinasc_2$TPROBSON)
 
 # ATENçÃO: 1. Na hora de escrever os labels, somente a primeira letra da palavra é maiúscula. Exemplo para SEXO: Feminino e Masculino
 #          2. Nesta Tarefa 6 não crie novas variáveis no banco de dados
+# LOCNASC
+dados_sinasc_2$LOCNASC = factor(dados_sinasc_2$LOCNASC,
+                                levels = c(1,2,3,4,5),
+                                labels = c("Hospital", "Outro estabelecimento de saúde", "Domicílio", "Outros", "Aldeia indígena"))
+
 #KOTELCHUCK
 dados_sinasc_2$KOTELCHUCK = factor(dados_sinasc_2$KOTELCHUCK,
                                    levels = c(1,2,3,4,5),
@@ -114,6 +124,10 @@ dados_sinasc_2$KOTELCHUCK = factor(dados_sinasc_2$KOTELCHUCK,
 dados_sinasc_2$SEXO = factor(dados_sinasc_2$SEXO,
                              levels = c(1,2),
                              labels = c("Masculino", "Feminino"))
+# RACACOR (recém-nascido)
+dados_sinasc_2$RACACOR = factor(dados_sinasc_2$RACACOR,
+                                levels = c(1,2,3,4,5),
+                                labels = c("Branca", "Preta", "Amarela", "Parda", "Indígena"))
 #parto
 dados_sinasc_2$PARTO = factor(dados_sinasc_2$PARTO,
                               levels = c(1,2),
@@ -131,6 +145,11 @@ dados_sinasc_2$GESTACAO = factor(dados_sinasc_2$GESTACAO,
 dados_sinasc_2$ESTCIVMAE = factor(dados_sinasc_2$ESTCIVMAE,
                                   levels = c(1,2,3,4,5),
                                   labels = c("Solteira", "Casada", "Viúva", "Separada/divorciada", "União estável"))
+
+
+unique(dados_sinasc_2$ESTCIVMAE)
+table(dados_sinasc_2$ESTCIVMAE)
+
 #IDANOMAL
 dados_sinasc_2$IDANOMAL = factor(dados_sinasc_2$IDANOMAL,
                                  levels = c(1,2),
@@ -141,6 +160,25 @@ dados_sinasc_2$TPROBSON = factor(dados_sinasc_2$TPROBSON,
                                  levels = c(1,2,3,4,5,6,7,8,9,10),
                                  labels = c("Grupo 1","Grupo 2","Grupo 3","Grupo 4","Grupo 5",
                                             "Grupo 6","Grupo 7","Grupo 8","Grupo 9","Grupo 10"))
+# ESCMAE2010
+dados_sinasc_2$ESCMAE2010 = factor(dados_sinasc_2$ESCMAE2010,
+                                   levels = c(0,1,2,3,4,5),
+                                   labels = c("Sem escolaridade", "Fundamental I", "Fundamental II",
+                                              "Médio", "Superior incompleto", "Superior completo"))
+# RACACORMAE
+dados_sinasc_2$RACACORMAE = factor(dados_sinasc_2$RACACORMAE,
+                                   levels = c(1,2,3,4,5),
+                                   labels = c("Branca", "Preta", "Amarela", "Parda", "Indígena"))
+
+# TPAPRESENT
+dados_sinasc_2$TPAPRESENT = factor(dados_sinasc_2$TPAPRESENT,
+                                   levels = c(1,2,3),
+                                   labels = c("Cefálica", "Pélvica ou podálica", "Transversa"))
+
+# PARIDADE
+dados_sinasc_2$PARIDADE = factor(dados_sinasc_2$PARIDADE,
+                                 levels = c(0,1),
+                                 labels = c(labels = c("Nulípara", "Multípara")))
 #Verificando a tarefa 6
 str(dados_sinasc_2)
 # Tarefa 7. Categorizar as variáveis IDADEMAE, PESO e APGAR5
