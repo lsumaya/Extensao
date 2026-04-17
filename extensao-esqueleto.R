@@ -39,7 +39,6 @@ dados_sinasc_2<- subset(
   substr(as.character(CODMUNRES), 1, 2)== "29")
 head(dados_sinasc_2)
 
-
 # observar abaixo o número de nascimentos por UF de residência para certificar-se que seu banco de dados está correto
 # 11: 27918     12: 16980     13: 80097     14: 11409     15: 143657    16: 15750      17: 25110
 # 21: 117564    22: 49253     23: 132516    24: 49099     25: 59089     26: 145024     27: 52257     28: 34917     29: 206655
