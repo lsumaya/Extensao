@@ -37,7 +37,8 @@ dados_sinasc_1 <- dados_sinasc [,c(1, 4, 5, 6, 7, 12, 13, 14, 15, 19, 21, 22, 23
 dados_sinasc_2<- subset(
   dados_sinasc_1 ,
   substr(as.character(CODMUNRES), 1, 2)== "29")
-head(dados_BA)
+head(dados_sinasc_2)
+
 
 # observar abaixo o número de nascimentos por UF de residência para certificar-se que seu banco de dados está correto
 # 11: 27918     12: 16980     13: 80097     14: 11409     15: 143657    16: 15750      17: 25110
@@ -57,6 +58,21 @@ write.csv(dados_sinasc_2, "dados_sinasc_2.csv")
 # Tarefa 4. Verificar em dados_sinasc_2 a frequência das categorias das seguintes variáveis: LOCNASC, ESTCIVMAE, GESTACAO, GRAVIDEZ, PARTO,
 # SEXO, APGAR5, RACACOR, IDANOMAL, ESCMAE2010, RACACORMAE, TPAPRESENT, TPROBSON, PARIDADE, KOTELCHUCK
 str(dados_sinasc_2)
+table(dados_sinasc_2$LOCNASC)
+table(dados_sinasc_2$ESTCIVMAE)
+table(dados_sinasc_2$GESTACAO)
+table(dados_sinasc_2$GRAVIDEZ)
+table(dados_sinasc_2$PARTO)
+table(dados_sinasc_2$SEXO)
+table(dados_sinasc_2$APGAR5)
+table(dados_sinasc_2$RACACOR)
+table(dados_sinasc_2$IDANOMAL)
+table(dados_sinasc_2$ESCMAE2010)
+table(dados_sinasc_2$RACACORMAE)
+table(dados_sinasc_2$TPAPRESENT)
+table(dados_sinasc_2$TPROBSON)
+table(dados_sinasc_2$PARIDADE)
+table(dados_sinasc_2$KOTELCHUCK)
 
 # Tarefa 5. Atribuir para cada variável de dados_sinasc_2 como sendo NA a categoria de "Não informado ou Ignorado", geralmente com código 9
 # KOTELCHUCK = 9 significa "não informado"   TPROBSON = 11 significa "não classificado por falta de informação"
@@ -77,6 +93,8 @@ dados_sinasc_2$SEXO[dados_sinasc_2$SEXO == 0] = NA
 
 dados_sinasc_2$ESCMAE2010[dados_sinasc_2$ESCMAE2010 == 9] = NA
 dados_sinasc_2$TPAPRESENT[dados_sinasc_2$TPAPRESENT == 9] = NA
+
+dados_sinasc_2$APGAR5[dados_sinasc_2$APGAR5 == 99] = NA
 
 #Verificando a tarefa 5
 unique(dados_sinasc_2$KOTELCHUCK)
@@ -118,6 +136,12 @@ dados_sinasc_2$ESTCIVMAE = factor(dados_sinasc_2$ESTCIVMAE,
 dados_sinasc_2$IDANOMAL = factor(dados_sinasc_2$IDANOMAL,
                                  levels = c(1,2),
                                  labels = c("Sim", "Não"))
+
+#TPROBSON
+dados_sinasc_2$TPROBSON = factor(dados_sinasc_2$TPROBSON,
+                                 levels = c(1,2,3,4,5,6,7,8,9,10),
+                                 labels = c("Grupo 1","Grupo 2","Grupo 3","Grupo 4","Grupo 5",
+                                            "Grupo 6","Grupo 7","Grupo 8","Grupo 9","Grupo 10"))
 #Verificando a tarefa 6
 str(dados_sinasc_2)
 # Tarefa 7. Categorizar as variáveis IDADEMAE, PESO e APGAR5
