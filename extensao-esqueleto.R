@@ -346,7 +346,8 @@ write.csv(dados_sinasc_2, "dados_sinasc_2.csv")
 
 # Ao concluir a Tarefa 3 da Etapa 1 commite e envie para o repositório REMOTO o script e dados_sinasc_2.csv com o comentário "Dados do estado UF (coloque o nome da UF) e script de sua obtenção"
 
-
+#Lendo a base de dados
+dados_sinasc_2=read.csv("dados_sinasc_2.csv",header = TRUE, sep = ",")
 # Tarefa 4. Verificar em dados_sinasc_2 a frequência das categorias das seguintes variáveis: LOCNASC, ESTCIVMAE, GESTACAO, GRAVIDEZ, PARTO,
 # SEXO, APGAR5, RACACOR, IDANOMAL, ESCMAE2010, RACACORMAE, TPAPRESENT, TPROBSON, PARIDADE, KOTELCHUCK
 str(dados_sinasc_2)
@@ -380,7 +381,7 @@ summary(dados_sinasc_2$PESO)
 
 # Tratamento de valores ignorados / não informados
 
-ddados_sinasc_2$LOCNASC[dados_sinasc_2$LOCNASC == 9] = NA
+dados_sinasc_2$LOCNASC[dados_sinasc_2$LOCNASC == 9] = NA
 dados_sinasc_2$IDADEMAE[dados_sinasc_2$IDADEMAE == 99] = NA
 dados_sinasc_2$ESTCIVMAE[dados_sinasc_2$ESTCIVMAE == 9] = NA
 dados_sinasc_2$GESTACAO[dados_sinasc_2$GESTACAO == 9] = NA
@@ -472,11 +473,17 @@ dados_sinasc_2$ESTCIV = factor(dados_sinasc_2$ESTCIV, levels = c("Sem companheir
 # criar nova variável referente ao peso, de acordo com a idade gestacional, conforme indicado abaixo
 # nova variável apenas para casos de GRAVIDEZ única: dados_sinasc_2$F_PIG: PIG: PESO < PESO_P10, AIG: PESO_P10 <= PESO <= PESO_P90, GIG: PESO > PESO_P90
 # Atenção para casos de NA em SEMAGESTAC, PESO ou SEXO. Lembre-se também que em dados_sinasc_2 SEXO está como fator com as categorias Feminino e Masculino.
-
 # criar nova variável referente ao deslocamento materno para realizar o parto, chamado de peregrinação
 # nova variável: dados_sinasc_2$PERIG: Não: CODMUNNASC igual a CODMUNRES, Sim: CODMUNNASC diferente de CODMUNRES
-
-
+tabela_pig = read.csv("Tabela_PIG_Brasil.csv", header = TRUE, sep=";")
+tabela_pig$SEXO = factor(tabela_pig$SEXO, levels = c("Masculino", "Feminino"))
+dados_sinasc_2 = merge(dados_sinasc_2, tabela_pig, by = c("SEMAGESTAC","SEXO"), all.x = TRUE)
+dados_sinasc_2$F_PIG=ifelse(dados_sinasc_2$GRAVIDEZ != "Única", NA,
+                            ifelse(is.na(dados_sinasc_2$PESO)|is.na(dados_sinasc_2$PESO_P10)|is.na(dados_sinasc_2$PESO_P90),
+                                   NA,
+                                   ifelse(dados_sinasc_2$PESO < dados_sinasc_2$PESO_P10, "PIG",
+                                          ifelse(dados_sinasc_2$PESO<=dados_sinasc_2$PESO_P90, "AIG", "GIG"))))
+dados_sinasc_2$F_PIG = factor(dados_sinasc_2$F_PIG, levels = c("PIG","AIG","GIG"))
 # Tarefa 9. Obter as frequências das categorias das variáveis e medidas descritivas de variáveis e salvar os resultados em novas variáveis.
 # Exemplo: freq_SEXO = table(dados_sinasc_2$SEXO)   media_peso = mean(dados_sinasc_2$PESO)
 # Medidas descritivas a serem calculadas para variáveis QUANTITATIVAS: P25, P50, P75, média e desvio-padrão. Atenção: usar na.rm = TRUE, quando necessário.
