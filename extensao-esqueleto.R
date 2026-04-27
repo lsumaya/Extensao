@@ -176,6 +176,7 @@ dados_sinasc_2$ESTCIV = factor(dados_sinasc_2$ESTCIV, levels = c("Sem companheir
 
 # criar nova variável referente ao deslocamento materno para realizar o parto, chamado de peregrinação
 # nova variável: dados_sinasc_2$PERIG: Não: CODMUNNASC igual a CODMUNRES, Sim: CODMUNNASC diferente de CODMUNRES
+
 tabela_pig = read.csv("Tabela_PIG_Brasil.csv", header = TRUE, sep=";")
 tabela_pig$SEXO = factor(tabela_pig$SEXO, levels = c("Masculino", "Feminino"))
 dados_sinasc_2 = merge(dados_sinasc_2, tabela_pig, by = c("SEMAGESTAC","SEXO"), all.x = TRUE)
