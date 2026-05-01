@@ -46,7 +46,7 @@ head(dados_sinasc_2)
 # 31: 268305    32: 56941     33: 236960    35: 634026     
 # 41: 160947    42: 97223     43: 148359
 # 50: 44142     51: 56673     52: 100672    53: 46122 
-table(substr(as.character(dados_BA$CODMUNRES), 1,2))
+table(substr(as.character(dados_sinasc_2$CODMUNRES), 1,2))
 
 
 # Exportar o arquivo com o nome dados_sinasc_2.csv
