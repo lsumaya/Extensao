@@ -567,7 +567,15 @@ write.csv(dados_sim_2, "dados_sim_2.csv")
 
 # Tarefa 4. Verificar em dados_sim_2 a frequência das categorias das seguintes variáveis: TIPOBITO, SEXO, RACACOR, 
 # TPMORTEOCO, OBITOGRAV, OBITOPUERP, CAUSABAS, TPOBITOCOR, MORTEPARTO
-
+table(dados_sim_2$TIPOBITO)
+table(dados_sim_2$SEXO)
+table(dados_sim_2$RACACOR)
+table(dados_sim_2$TPMORTEOCO)
+table(dados_sim_2$OBITOGRAV)
+table(dados_sim_2$OBITOPUERP)
+table(dados_sim_2$CAUSABAS)
+table(dados_sim_2$TPOBITOCOR)
+table(dados_sim_2$MORTEPARTO)
 
 # Tarefa 5. Atribuir para cada variável de dados_sim_2 como sendo NA a categoria de "Não informado ou Ignorado", geralmente com código 9
 # veja o dicionário do SIM para identificar qual o código das categorias de cada variável
