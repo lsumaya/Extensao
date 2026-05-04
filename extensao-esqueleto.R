@@ -537,27 +537,30 @@ write.csv(SINASC_BA, "SINASC_BA.csv", row.names = FALSE)
 # Tarefa 1. Leitura do banco de dados Mortalidade_Geral_2015 do SIM 2015 com 1264175 linhas e 87 colunas
 # verificar se a leitura foi feita corretamente e a estrutura dos dados
 # nomeie o banco de dados como dados_sim
-
+dados_sim_1 <- dados_sim[,c(1, 3, 4, 8, 9, 10, 11, 14, 17, 35, 36, 37, 47, 77, 84)]
 
 # Tarefa 2. Reduzir dados_sim apenas para as colunas que serão utilizadas, nomeando este novo banco de dados como dados_sim_1
 # as colunas serão: 1, 3, 4, 8, 9, 10, 11, 14, 17, 35, 36, 37, 47, 77, 84
 # nomes das respectivas variáveis: CONTADOR, TIPOBITO, DTOBITO, DTNASC, IDADE, SEXO, RACACOR, ESC2010, CODMUNRES, TPMORTEOCO, 
 # OBITOGRAV, OBITOPUERP, CAUSABAS, TPOBITOCOR, MORTEPARTO
-
+dados_sim_2<- subset(
+  dados_sim_1 ,
+  substr(as.character(CODMUNRES), 1, 2)== "29")
+head(dados_sim_2)
 # Tarefa 3. Reduzir dados_sim_1 apenas para o estado que o aluno irá trabalhar (utilizar os dois primeiros dígitos de CODMUNRES), nomeando este novo banco de dados como dados_sim_2
 # Códigos das UF: 11: RO, 12: AC, 13: AM, 14: RR, 15: PA, 16: AP, 17: TO, 21: MA, 22: PI, 23: CE, 24: RN
 # 25: PB, 26: PE, 27: AL, 28: SE, 29: BA, 31: MG, 32: ES, 33: RJ, 35: SP, 41: PR, 42: SC, 43: RS
 # 50: MS, 51: MT, 52: GO, 53: DF 
-
+table(substr(as.character(dados_sim_2$CODMUNRES), 1,2))
 # observar abaixo o número de óbitos por UF de residência para certificar-se que seu banco de dados está correto
 # 11: 7948      12: 3517      13: 16675     14: 2091      15: 37365     16: 2946       17: 7402
 # 21: 33666     22: 19366     23: 55258     24: 20153     25: 26422     26: 62556      27: 19756     28: 13453     29: 87083
 # 31: 131274    32: 22332     33: 127714    35: 287645     
 # 41: 70839     42: 37984     43: 82349
 # 50: 15457     51: 17095     52: 38854     53: 11975
-
+table(substr(as.character(dados_sim_2$CODMUNRES), 1,2))
 # Exportar o arquivo com o nome dados_sim_2.csv
-
+write.csv(dados_sim_2, "dados_sim_2.csv")
 
 # Ao concluir a Tarefa 3 da Etapa 2 commite e envie para o repositório REMOTO o script e dados_sim_2.csv com o comentário "Dados do estado UF (coloque o nome da UF) e script de sua obtenção"
 
