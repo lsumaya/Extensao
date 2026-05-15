@@ -975,10 +975,24 @@ write.csv(SIM_BA,
 
 # Tarefa 1. Acesso aos bancos de dados do SIDRA e obtenção da informação
 # Leia os arquivos:
+
 # 1. população residente estimada - UF e municípios - 2015 - SIDRA - tabela_6579.csv  
+pop_estimada = read.csv("população residente estimada - UF e municípios - 2015 - SIDRA - tabela_6579.csv", header = TRUE, sep = ';')
+
 # 2. população residente censo 2010 - UF e municípios - total e por sexo - SIDRA - tabela_1552.csv  
+pop_censo = read.csv("população residente censo 2010 - UF e municípios - total e por sexo - SIDRA - tabela_1552.csv", header = TRUE, sep = ";")
+
 # 3. população residente censo 2010 - por faixa etária -  UF - SIDRA - tabela_1552.csv
+idade_uf = read.csv("população residente censo 2010 - por faixa etária -  UF - SIDRA - tabela_1552.csv", header = TRUE, sep = ';')
+
 # 4. população residente censo 2010 - por faixa etária e sexo -  municípios - SIDRA - tabela_1552.csv
+idade_mun = read.csv("população residente censo 2010 - por faixa etária e sexo -  municípios - SIDRA - tabela_1552.csv", header = TRUE, sep = ';')
+
+#Verificando dados
+str(pop_estimada)
+str(pop_censo)
+str(idade_uf)  
+str(idade_mun)
 
 # A partir dos arquivos acima gere o banco de dados de nome SIDRA_UF com as seguintes variáveis:
 # 1  ANO    
@@ -995,15 +1009,117 @@ write.csv(SIM_BA,
 # 12 POPRC_F_15_49
 # 13 POPRC_F_50
 
+#transformando o codmunres em texto
+pop_estimada$CODMUNRES = as.character(pop_estimada$CODMUNRES)
+pop_censo$CODMUNRES = as.character(pop_censo$CODMUNRES)
+idade_uf$CODMUNRES = as.character(idade_uf$CODMUNRES)
+idade_mun$CODMUNRES = as.character(idade_mun$CODMUNRES)
+
+#filtrando apenas para BA
+
+pop_estimada = pop_estimada[substr(pop_estimada$CODMUNRES, 1, 2) == "29",]
+
+pop_censo = pop_censo[substr(pop_censo$CODMUNRES, 1, 2) == "29",]
+
+idade_uf = idade_uf[substr(idade_uf$CODMUNRES, 1, 2) == "29",]
+
+idade_mun = idade_mun[substr(idade_mun$CODMUNRES, 1, 2) == "29",]
+
+#transformando população estimada em numérica
+pop_estimada$POPRE_T = as.numeric(pop_estimada$POPRE_T)
+
+#juntando info de idade
+idade_uf_2 = idade_uf[, c("CODMUNRES","F_IDADE","POP","POPM","POPF")]
+
+idade_mun_2 = idade_mun[, c("CODMUNRES","F_IDADE","POP","POPM","POPF")]
+
+total_idade = rbind(idade_uf_2, idade_mun_2)
+
+
+
+# removendo observações sem faixa etária
+
+total_idade = total_idade[!is.na(total_idade$F_IDADE),]
+
+#criando variavel do grupo de idade
+
+total_idade$GRUPO_IDADE = NA_character_
+
+#pop menor de 15 anos
+
+total_idade$GRUPO_IDADE[total_idade$F_IDADE %in% c("0 a 4 anos","5 a 9 anos","10 a 14 anos")] <- "<15"
+
+#pop de 15 a 49 anos
+
+total_idade$GRUPO_IDADE[total_idade$F_IDADE %in% c("15 a 19 anos","20 a 24 anos","25 a 29 anos",
+                                                   "30 a 34 anos",  "35 a 39 anos","40 a 44 anos","45 a 49 anos")] = "15_49"
+
+#pop de 50 anos ou mais
+
+total_idade$GRUPO_IDADE[total_idade$F_IDADE %in% c("50 a 54 anos","55 a 59 anos","60 a 64 anos",
+                                                   "65 a 69 anos","70 a 74 anos","75 a 79 anos",
+                                                   "80 a 89 anos","90 a 99 anos","100 anos ou mais")] = "50"
+
+#somando pop total e feminina por CODMUNRES e grupo de idade
+
+idade_resumo = aggregate(cbind(POP, POPF) ~ CODMUNRES + GRUPO_IDADE,data = total_idade,FUN = sum, na.rm = TRUE)
+
+#transformando grupo de idade em colunas 
+
+idade_colunas = reshape(idade_resumo, idvar = "CODMUNRES", timevar = "GRUPO_IDADE", direction = "wide")
+
+#renomeando variaveis de pop total
+
+names(idade_colunas)[names(idade_colunas) == "POP.<15"] = "POPRC_15"
+names(idade_colunas)[names(idade_colunas) == "POP.15_49"] = "POPRC_15_49"
+names(idade_colunas)[names(idade_colunas) == "POP.50"] = "POPRC_50"
+
+#renomeando variaveis de pop feminina
+
+names(idade_colunas)[names(idade_colunas) == "POPF.<15"] <- "POPRC_F_15"
+names(idade_colunas)[names(idade_colunas) == "POPF.15_49"] <- "POPRC_F_15_49"
+names(idade_colunas)[names(idade_colunas) == "POPF.50"] <- "POPRC_F_50"
+
+#juntando pop estimada de 2015 com censo 2010
+
+SIDRA_BA = merge(pop_estimada[, c("CODMUNRES", "POPRE_T")],
+                 pop_censo[, c("CODMUNRES", "POPRC_T", "POPRC_M", "POPRC_F")], by = "CODMUNRES",
+                 all.x = TRUE)
+
+#juntando faixa etaria
+
+SIDRA_BA = merge(SIDRA_BA, idade_colunas, by = "CODMUNRES", all.x = TRUE)
+
+#pondo variavel ano 
+
+SIDRA_BA$ANO = 2015
+
+#variavel nivel
+
+SIDRA_BA$NIVEL = ifelse(nchar(SIDRA_BA$CODMUNRES) == 2,"UF","MUNICIPIO")
+
+#organizando banco de dados 
+
+SIDRA_BA = SIDRA_BA[, c(
+  "ANO",
+  "NIVEL",
+  "CODMUNRES",
+  "POPRE_T",
+  "POPRC_T",
+  "POPRC_M",
+  "POPRC_F",
+  "POPRC_15",
+  "POPRC_15_49",
+  "POPRC_50",
+  "POPRC_F_15",
+  "POPRC_F_15_49",
+  "POPRC_F_50")]
+
 # Exporte o arquivo em formato CSV
+
+write.csv(SIDRA_BA, "SIDRA_BA.csv", row.names = FALSE)
+
 # Faça o commit com a mensagem "Script e dados TAREFA 3 - SIDRA"
-
-
-**************************************************************************
-  
-# Tarefa 1. Acesso aos bancos de dados e obtenção da informação
-
-
 
 #####################################################################################################
 # ETAPA 4: GERAR BANCO DE DADOS FINAL DO ESTADO, BASEADO NAS ANÁLISES DE SINASC, SIM, IBGE, SNIS,...
