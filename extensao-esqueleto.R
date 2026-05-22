@@ -1106,6 +1106,35 @@ write.csv(SIDRA_BA, "SIDRA_BA.csv", row.names = FALSE)
 # 4 POPR_RA
 # 5 POPR_RE
 
+# 0. Lendo o arquivo original (Criando o objeto aguaesgoto2)
+aguaesgoto2 <- read.csv2("agua e esgoto - município - 2015.csv")
+
+# 1. Filtra para manter apenas a Bahia (Municípios cujo código começa com 29)
+aguaesgoto_ba <- subset(aguaesgoto2, substr(as.character(CODMUNRES), 1, 2) == "29")
+
+# 2. Cria o banco de dados na ORDEM EXATA da imagem
+SINISA_BA <- data.frame(
+  ANO = 2015,                                
+  NIVEL = "MUNICIPIO",                       
+  CODMUNRES = aguaesgoto_ba$CODMUNRES,       
+  POPRE_RA = as.numeric(gsub(",", ".", aguaesgoto_ba$POPR_RA)), 
+  POPRE_RE = as.numeric(gsub(",", ".", aguaesgoto_ba$POPR_RE))  
+)
+
+# 3. Cria a linha agregada da UF (Estado da Bahia = código 29)
+linha_uf <- data.frame(
+  ANO = 2015,
+  NIVEL = "UF",
+  CODMUNRES = 29,
+  POPRE_RA = sum(SINISA_BA$POPRE_RA, na.rm = TRUE),
+  POPRE_RE = sum(SINISA_BA$POPRE_RE, na.rm = TRUE)
+)
+
+# 4. Junta a linha totalizadora da UF no topo do banco de dados dos municípios
+SINISA_BA <- rbind(linha_uf, SINISA_BA)
+# Exporte o arquivo em formato CSV
+write.csv(SINISA_BA, file = "SINISA_BA.csv", row.names = FALSE)
+
 # Exporte o arquivo em formato CSV
 # Faça o commit com a mensagem "Script e dados TAREFA 3 - SINISA"
 
