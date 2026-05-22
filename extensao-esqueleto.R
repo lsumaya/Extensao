@@ -1128,7 +1128,6 @@ write.csv(SIDRA_BA, "SIDRA_BA.csv", row.names = FALSE)
 # Exporte o arquivo em formato CSV# Faça o commit com a mensagem "Script e dados TAREFA 3 - ATLAS"
 
 
-
 #####################################################################################################
 # ETAPA 4: GERAR BANCO DE DADOS FINAL DO ESTADO, BASEADO NAS ANÁLISES DE SINASC, SIM, IBGE, SNIS,...
 ######################################################################################################
@@ -1146,5 +1145,7 @@ write.csv(SIDRA_BA, "SIDRA_BA.csv", row.names = FALSE)
 # ESTANDO NA BRANCH SINASC, NÃO ALTERE NADA NO SCRIPT REFERENTE A ETAPA 5
 
 # 1. Enviar arquivos para as pastas do repositório da Professora no GitHUb
+
 # 2. A professora fará o empilhamentos dos dataframes
+
 
