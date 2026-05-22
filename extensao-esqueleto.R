@@ -1148,4 +1148,3 @@ write.csv(SIDRA_BA, "SIDRA_BA.csv", row.names = FALSE)
 
 # 2. A professora fará o empilhamentos dos dataframes
 
-
