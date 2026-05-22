@@ -117,7 +117,7 @@ n_total_nasc_MUN_sem_missing = tapply(complete.cases(dados_sinasc_2), dados_sina
 # ATENçÃO: 1. Na hora de escrever os labels, somente a primeira letra da palavra é maiúscula. Exemplo para SEXO: Feminino e Masculino
 #          2. Nesta Tarefa 6 não crie novas variáveis no banco de dados
 
-dados_sinasc_2$LOCNASC = factor(dados_sinasc_2$LOCNASC, levels = c(1,2,3,4), labels = c("Hospital", "Outros estabelecimentos de saúde", "Domicílio", "Outros"))
+dados_sinasc_2$LOCNASC = factor(dados_sinasc_2$LOCNASC, levels = c(1,2,3,4,5), labels = c("Hospital", "Outros estabelecimentos de saúde", "Domicílio", "Outros",  "Aldeia indígena"))
 dados_sinasc_2$ESTCIVMAE = factor(dados_sinasc_2$ESTCIVMAE, levels = c(1,2,3,4,5), labels = c("Solteira", "Casada", "Viúva", "Separada judicialmente/divorciada", "União estável"))
 dados_sinasc_2$GESTACAO = factor(dados_sinasc_2$GESTACAO, levels = c(1,2,3,4,5,6), labels = c("Menos de 22 semanas", "22 a 27 semanas", "28 a 31 semanas", "32 a 36 semanas", "37 a 41 semanas", "42 semanas e mais"))
 dados_sinasc_2$GRAVIDEZ = factor(dados_sinasc_2$GRAVIDEZ, levels = c(1,2,3), labels = c("Única", "Dupla", "Tripla ou mais"))
@@ -159,9 +159,9 @@ dados_sinasc_2$F_PESO = factor(dados_sinasc_2$F_PESO, levels = c("Baixo peso","P
 dados_sinasc_2$F_APGAR5 = ifelse(dados_sinasc_2$APGAR5 < 7, "Baixo", "Normal")
 dados_sinasc_2$F_APGAR5 = factor(dados_sinasc_2$F_APGAR5,levels = c("Baixo","Normal"))
 
-dados_sinasc_2$PERIG = ifelse(is.na(dados_sinasc_2$CODMUNNASC) | is.na(dados_sinasc_2$CODMUNRES), NA,
+dados_sinasc_2$PEREG = ifelse(is.na(dados_sinasc_2$CODMUNNASC) | is.na(dados_sinasc_2$CODMUNRES), NA,
                               ifelse(dados_sinasc_2$CODMUNNASC == dados_sinasc_2$CODMUNRES, "Não", "Sim"))
-dados_sinasc_2$PERIG = factor(dados_sinasc_2$PERIG, levels = c("Sim", "Não"))
+dados_sinasc_2$PEREG = factor(dados_sinasc_2$PEREG, levels = c("Sim", "Não"))
 
 dados_sinasc_2$ESTCIV = ifelse(dados_sinasc_2$ESTCIVMAE %in% c("Solteira", "Viúva", "Separada judicialmente/divorciada"), "Sem companheiro",
                                ifelse(dados_sinasc_2$ESTCIVMAE %in% c("Casada", "União estável"), "Com companheiro", NA))
@@ -175,41 +175,18 @@ dados_sinasc_2$ESTCIV = factor(dados_sinasc_2$ESTCIV, levels = c("Sem companheir
 # Atenção para casos de NA em SEMAGESTAC, PESO ou SEXO. Lembre-se também que em dados_sinasc_2 SEXO está como fator com as categorias Feminino e Masculino.
 
 # criar nova variável referente ao deslocamento materno para realizar o parto, chamado de peregrinação
-# nova variável: dados_sinasc_2$PERIG: Não: CODMUNNASC igual a CODMUNRES, Sim: CODMUNNASC diferente de CODMUNRES
-tabela_pig = read.csv("Tabela_PIG_Brasil.csv", header = TRUE, sep=";", stringsAsFactors = FALSE)
-dados_sinasc_2$SEXO = as.character(dados_sinasc_2$SEXO)
-tabela_pig$SEXO = as.character(tabela_pig$SEXO)
-dados_sinasc_2$SEMAGESTAC = as.numeric(as.character(dados_sinasc_2$SEMAGESTAC))
-tabela_pig$SEMAGESTAC = as.numeric(as.character(tabela_pig$SEMAGESTAC))
-dados_sinasc_2$PESO_P10 = NULL
-dados_sinasc_2$PESO_P90 = NULL
-dados_sinasc_2 = merge(
-  dados_sinasc_2,
-  tabela_pig,
-  by = c("SEMAGESTAC","SEXO"),
-  all.x = TRUE
-)
+# nova variável: dados_sinasc_2$PEREG: Não: CODMUNNASC igual a CODMUNRES, Sim: CODMUNNASC diferente de CODMUNRES
+tabela_pig = read.csv("Tabela_PIG_Brasil.csv", header = TRUE, sep=";")
+tabela_pig$SEXO = factor(tabela_pig$SEXO, levels = c("Masculino", "Feminino"))
+dados_sinasc_2 = merge(dados_sinasc_2, tabela_pig, by = c("SEMAGESTAC","SEXO"), all.x = TRUE)
 
-dados_sinasc_2$F_PIG = ifelse(
-  dados_sinasc_2$GRAVIDEZ != "Única",
-  NA,
-  ifelse(
-    is.na(dados_sinasc_2$PESO) |
-      is.na(dados_sinasc_2$PESO_P10) |
-      is.na(dados_sinasc_2$PESO_P90),
-    NA,
-    ifelse(
-      dados_sinasc_2$PESO < dados_sinasc_2$PESO_P10, "PIG",
-      ifelse(
-        dados_sinasc_2$PESO <= dados_sinasc_2$PESO_P90, "AIG",
-        "GIG"
-      )
-    )
-  )
-)
+dados_sinasc_2$F_PIG = ifelse(dados_sinasc_2$GRAVIDEZ != "Única", NA,
+                              ifelse(is.na(dados_sinasc_2$PESO) | is.na(dados_sinasc_2$PESO_P10) | is.na(dados_sinasc_2$PESO_P90), NA,
+                                     ifelse(dados_sinasc_2$PESO < dados_sinasc_2$PESO_P10, "PIG",
+                                            ifelse(dados_sinasc_2$PESO <= dados_sinasc_2$PESO_P90, "AIG",
+                                                   "GIG"))))
+
 dados_sinasc_2$F_PIG = factor(dados_sinasc_2$F_PIG, levels = c("PIG","AIG","GIG"))
-
-table(dados_sinasc_2$F_PIG, useNA = "always")
 
 #Tarefas 9 e 10 (reformulada) do script esqueleto:
 #Crie um banco de dados, de nome SINASC_UF.csv (Exemplo: SINASC_RJ.csv), contendo as 103 variáveis listadas no arquivo “Variáveis - Projeto - Tarefas 9 e 10 da Etapa 1.pdf”
@@ -311,7 +288,7 @@ df$CODMUNRES = rownames(df)
 base = merge(base, df, by = "CODMUNRES", all.x = TRUE)
 
 # Peregrinação (58 a 59)
-tab = table(dados_sinasc_2$CODMUNRES, factor(dados_sinasc_2$PERIG, levels = c("Sim", "Não")))
+tab = table(dados_sinasc_2$CODMUNRES, factor(dados_sinasc_2$PEREG, levels = c("Sim", "Não")))
 df = as.data.frame.matrix(tab)
 names(df) = c("TGPRG_S", "TGPRG_N")
 df$CODMUNRES = rownames(df)
@@ -460,8 +437,6 @@ cols_continuas = c("IM_MD","IM_DP","IM_P25","IM_P50","IM_P75",
 
 cols_contagem = setdiff(names(base), c("CODMUNRES", cols_continuas))
 
-# Substituir NA por 0
-base[cols_contagem][is.na(base[cols_contagem])] = 0
 
 # Linha da UF
 linha_estado = base[1, ]
@@ -999,7 +974,7 @@ write.csv(SIM_BA,
 # Faça o commit com a mensagem "Script e dados TAREFA 3 - SIDRA"
 
 
-**************************************************************************
+
   
 # Tarefa 1. Acesso aos bancos de dados e obtenção da informação
 
