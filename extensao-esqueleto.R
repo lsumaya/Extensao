@@ -1154,6 +1154,101 @@ write.csv(SINISA_BA, file = "SINISA_BA.csv", row.names = FALSE)
 # 6 IDHM_CA_M
 # 7 IDHM_CA_F
 
+# 0. LENDO OS ARQUIVOS
+codigos_mun = read.csv2("códigos dos municípios - 2010.csv")
+idhm_uf = read.csv2("IDHM - 2010 (CENSO) e 2015 (PNAD) - total e por sexo - UF - Atlas Brasil.csv")
+idhm_mun = read.csv2("IDHM - 2010 - municípios - Atlas Brasil.csv")
+
+# --------------------------------------------------------------------------
+# 1. PREPARANDO OS DADOS DOS MUNICÍPIOS
+# --------------------------------------------------------------------------
+
+# Remover "(BA)", "(SP)" etc. do nome dos municípios
+idhm_mun$municipio_limpo = trimws(gsub("\\(.*?\\)", "", idhm_mun$município))
+
+# Fazer merge com a tabela de códigos
+dados_mun_completo = merge(
+  idhm_mun,
+  codigos_mun,
+  by.x = "municipio_limpo",
+  by.y = "município",
+  all.x = FALSE
+)
+
+# Garantir que CODMUNRES esteja numérico
+dados_mun_completo$CODMUNRES = as.numeric(as.character(dados_mun_completo$CODMUNRES))
+
+# Remover possíveis duplicados
+dados_mun_completo = dados_mun_completo[!duplicated(dados_mun_completo$CODMUNRES), ]
+
+# Filtrar apenas municípios da Bahia (código 29)
+idhm_mun_ba = subset(
+  dados_mun_completo,
+  substr(as.character(CODMUNRES), 1, 2) == "29"
+)
+
+# Criar banco dos municípios
+ATLAS_MUN = data.frame(
+  ANO = 2010,
+  NIVEL = "MUNICIPIO",
+  CODMUNRES = idhm_mun_ba$CODMUNRES,
+  
+  # IDHM Atlas / PNAD não existe para município
+  IDHM_A = NA,
+  
+  # IDHM Censo 2010
+  IDHM_CA = as.numeric(gsub(",", ".", idhm_mun_ba$IDHM_2010)),
+  
+  # Não há separação por sexo para municípios nesse arquivo
+  IDHM_CA_M = NA,
+  IDHM_CA_F = NA
+)
+
+# --------------------------------------------------------------------------
+# 2. PREPARANDO OS DADOS DA UF (BAHIA)
+# --------------------------------------------------------------------------
+
+# Filtrar apenas Bahia
+idhm_uf_ba = subset(idhm_uf, UF == "Bahia" | UF == "BA")
+
+# Criar linha agregada da UF
+ATLAS_LINHA_UF = data.frame(
+  ANO = 2010,
+  NIVEL = "UF",
+  CODMUNRES = 29,
+  
+  # IDHM PNAD 2015
+  IDHM_A = as.numeric(gsub(",", ".", idhm_uf_ba$IDHM_2015)),
+  
+  # IDHM Censo 2010
+  IDHM_CA = as.numeric(gsub(",", ".", idhm_uf_ba$IDHM_2010)),
+  
+  # IDHM por sexo
+  IDHM_CA_M = as.numeric(gsub(",", ".", idhm_uf_ba$IDHM_2010_M)),
+  IDHM_CA_F = as.numeric(gsub(",", ".", idhm_uf_ba$IDHM_2010_F))
+)
+
+# --------------------------------------------------------------------------
+# 3. UNINDO UF + MUNICÍPIOS
+# --------------------------------------------------------------------------
+
+ATLAS_BA = rbind(ATLAS_LINHA_UF, ATLAS_MUN)
+
+# Organizar ordem final das colunas
+ATLAS_BA = ATLAS_BA[, c(
+  "ANO",
+  "NIVEL",
+  "CODMUNRES",
+  "IDHM_A",
+  "IDHM_CA",
+  "IDHM_CA_M",
+  "IDHM_CA_F"
+)]
+
+# Visualizar resultado
+View(ATLAS_BA)
+
+
 # Exporte o arquivo em formato CSV# Faça o commit com a mensagem "Script e dados TAREFA 3 - ATLAS"
 
 
