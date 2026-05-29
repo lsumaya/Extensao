@@ -508,7 +508,7 @@ write.csv(SINASC_BA, "SINASC_BA.csv", row.names = FALSE)
 # A partir de main crie a branch SIM
 # ESTANDO NA BRANCH SIM, NÃO ALTERE NADA NO SCRIPT REFERENTE A ETAPA 1 e só insira comandos na ETAPA 2
 # Para realizar as tarefas da ETAPA 2, ABRIR ANTES uma branch de nome SIM no main de Extensao e ir para ela
-
+library(dplyr)
 # Tarefa 1. Leitura do banco de dados Mortalidade_Geral_2015 do SIM 2015 com 1264175 linhas e 87 colunas
 # verificar se a leitura foi feita corretamente e a estrutura dos dados
 # nomeie o banco de dados como dados_sim
@@ -589,346 +589,102 @@ dados_sim_2$MORTEPARTO = factor(dados_sim_2$MORTEPARTO, levels = c(1,2,3),labels
 # 2. Para informações fetais utilize TIPOBITO
 # 3. Para informações neonatais utilize TIPOBITO não fetal e IDADE entre 0 e 27 dias e RACACOR
 # 4. Para informações maternas utilize TPMORTEOCO, ESC e IDADE
-idade_tipo = substr(dados_sim_2$IDADE,1,1)
-idade_valor = as.numeric(substr(dados_sim_2$IDADE,2,3))
+# 1. Recriar os vetores lógicos baseados no dados_sim_2 original para garantir sincronia de linhas
+idade_tipo  <- substr(dados_sim_2$IDADE, 1, 1)
+idade_valor <- as.numeric(substr(dados_sim_2$IDADE, 2, 3))
 
-neonatal =
-  idade_tipo == "3" &
-  idade_valor <= 27
+neonatal         <- idade_tipo == "3" & idade_valor <= 27
+neonatal_precoce <- idade_tipo == "3" & idade_valor <= 6
+neonatal_tardio  <- idade_tipo == "3" & idade_valor >= 7 & idade_valor <= 27
+pos_neonatal     <- (idade_tipo == "3" & idade_valor >= 28) | (idade_tipo == "4" & idade_valor == 0)
+idade_fertil     <- idade_tipo == "4" & idade_valor >= 15 & idade_valor <= 49
 
-neonatal_precoce =
-  idade_tipo == "3" &
-  idade_valor <= 6
-
-neonatal_tardio =
-  idade_tipo == "3" &
-  idade_valor >= 7 &
-  idade_valor <= 27
-
-pos_neonatal =
-  (
-    idade_tipo == "3" &
-      idade_valor >= 28
-  ) |
-  (
-    idade_tipo == "4" &
-      idade_valor == 0
+# 2. Adicionar os vetores lógicos temporariamente dentro do banco para evitar o erro de indexação externa
+dados_para_resumo <- dados_sim_2 %>%
+  mutate(
+    temp_neo      = neonatal,
+    temp_neo_p    = neonatal_precoce,
+    temp_neo_t    = neonatal_tardio,
+    temp_pos_neo  = pos_neonatal,
+    temp_fertil   = idade_fertil,
+    # Conta os casos sem nenhum NA nas colunas originais da linha atual
+    linha_completa = complete.cases(dados_sim_2) 
   )
 
-idade_fertil =
-  idade_tipo == "4" &
-  idade_valor >= 15 &
-  idade_valor <= 49
-SIM_BA = data.frame(
-  
-  ANO = 2015,
-  
-  NIVEL = "UF",
-  
-  CODMUNRES = 29,
-  TO = nrow(dados_sim_2),
-  
-  TORC = sum(complete.cases(dados_sim)),
-  
-  TORCR = sum(complete.cases(dados_sim_2)),
-  
-  TO_NN =
-    sum(
-      substr(dados_sim_2$CAUSABAS,1,1) %in%
-        c("V","W","X","Y"),
-      na.rm = TRUE
-    ),
-  
-  TO_N =
-    sum(
-      !(substr(dados_sim_2$CAUSABAS,1,1) %in%
-          c("V","W","X","Y")),
-      na.rm = TRUE
-    ),
-  
-  TO_CB_I =
-    sum(
-      substr(dados_sim_2$CAUSABAS,1,1) %in%
-        c("A","B"),
-      na.rm = TRUE
-    ),
-  
-  TO_CB_N =
-    sum(
-      substr(dados_sim_2$CAUSABAS,1,1) %in%
-        c("C","D"),
-      na.rm = TRUE
-    ),
-  
-  TO_CB_C =
-    sum(
-      substr(dados_sim_2$CAUSABAS,1,1) == "I",
-      na.rm = TRUE
-    ),
-  
-  TO_CB_R =
-    sum(
-      substr(dados_sim_2$CAUSABAS,1,1) == "J",
-      na.rm = TRUE
-    ),
-  
-  TO_CB_O =
-    sum(
-      !(substr(dados_sim_2$CAUSABAS,1,1) %in%
-          c("A","B","C","D","I","J","V","W","X","Y")),
-      na.rm = TRUE
-    ),
-  
-  TO_M =
-    sum(
-      dados_sim_2$SEXO == "Masculino",
-      na.rm = TRUE
-    ),
-  
-  TO_F =
-    sum(
-      dados_sim_2$SEXO == "Feminino",
-      na.rm = TRUE
-    ),
-  
-  TO_F_IF =
-    sum(
-      dados_sim_2$SEXO == "Feminino" &
-        idade_fertil,
-      na.rm = TRUE
-    ),
-  TO_FT =
-    sum(
-      dados_sim_2$TIPOBITO == "Fetal",
-      na.rm = TRUE
-    ),
-  
-  TO_NT =
-    sum(
-      dados_sim_2$TIPOBITO == "Não fetal" &
-        neonatal,
-      na.rm = TRUE
-    ),
-  
-  TO_NT_P =
-    sum(
-      dados_sim_2$TIPOBITO == "Não fetal" &
-        neonatal_precoce,
-      na.rm = TRUE
-    ),
-  
-  TO_NT_T =
-    sum(
-      dados_sim_2$TIPOBITO == "Não fetal" &
-        neonatal_tardio,
-      na.rm = TRUE
-    ),
-  
-  TO_PNT =
-    sum(
-      dados_sim_2$TIPOBITO == "Não fetal" &
-        pos_neonatal,
-      na.rm = TRUE
-    ),
-  
-  TO_MT_G =
-    sum(
-      dados_sim_2$TPMORTEOCO == "Na gravidez",
-      na.rm = TRUE
-    ),
-  
-  TONT_B =
-    sum(
-      dados_sim_2$TIPOBITO == "Não fetal" &
-        neonatal &
-        dados_sim_2$RACACOR == "Branca",
-      na.rm = TRUE
-    ),
-  
-  TONT_PT =
-    sum(
-      dados_sim_2$TIPOBITO == "Não fetal" &
-        neonatal &
-        dados_sim_2$RACACOR == "Preta",
-      na.rm = TRUE
-    ),
-  
-  TONT_A =
-    sum(
-      dados_sim_2$TIPOBITO == "Não fetal" &
-        neonatal &
-        dados_sim_2$RACACOR == "Amarela",
-      na.rm = TRUE
-    ),
-  
-  TONT_PD =
-    sum(
-      dados_sim_2$TIPOBITO == "Não fetal" &
-        neonatal &
-        dados_sim_2$RACACOR == "Parda",
-      na.rm = TRUE
-    ),
-  
-  TONT_I =
-    sum(
-      dados_sim_2$TIPOBITO == "Não fetal" &
-        neonatal &
-        dados_sim_2$RACACOR == "Indígena",
-      na.rm = TRUE
-    ),
-  TO_MT =
-    sum(
-      dados_sim_2$TPMORTEOCO %in%
-        c(
-          "Na gravidez",
-          "No parto",
-          "No abortamento",
-          "Até 42 dias após o término do parto",
-          "De 43 dias a 1 ano após o término da gestação"
-        ),
-      na.rm = TRUE
-    ),
-  
-  TO_MT_DG =
-    sum(
-      dados_sim_2$TPMORTEOCO == "Na gravidez",
-      na.rm = TRUE
-    ),
-  
-  TO_MT_PT =
-    sum(
-      dados_sim_2$TPMORTEOCO == "No parto",
-      na.rm = TRUE
-    ),
-  
-  TO_MT_AB =
-    sum(
-      dados_sim_2$TPMORTEOCO == "No abortamento",
-      na.rm = TRUE
-    ),
-  
-  TO_MT_42 =
-    sum(
-      dados_sim_2$TPMORTEOCO ==
-        "Até 42 dias após o término do parto",
-      na.rm = TRUE
-    ),
-  
-  TO_MT_43 =
-    sum(
-      dados_sim_2$TPMORTEOCO ==
-        "De 43 dias a 1 ano após o término da gestação",
-      na.rm = TRUE
-    ),
-  
-  TO_MT_P =
-    sum(
-      dados_sim_2$TPMORTEOCO %in%
-        c(
-          "Na gravidez",
-          "No parto",
-          "No abortamento",
-          "Até 42 dias após o término do parto"
-        ),
-      na.rm = TRUE
-    ),
-  
-  TO_MT_P_I =
-    sum(
-      dados_sim_2$TPMORTEOCO %in%
-        c(
-          "Na gravidez",
-          "No parto",
-          "No abortamento",
-          "Até 42 dias após o término do parto"
-        ) &
-        idade_fertil,
-      na.rm = TRUE
-    ),
-  
-  TO_MT_P_ES =
-    sum(
-      dados_sim_2$TPMORTEOCO %in%
-        c(
-          "Na gravidez",
-          "No parto",
-          "No abortamento",
-          "Até 42 dias após o término do parto"
-        ) &
-        dados_sim_2$ESC2010 == 0,
-      na.rm = TRUE
-    ),
-  
-  TO_MT_P_EFI =
-    sum(
-      dados_sim_2$TPMORTEOCO %in%
-        c(
-          "Na gravidez",
-          "No parto",
-          "No abortamento",
-          "Até 42 dias após o término do parto"
-        ) &
-        dados_sim_2$ESC2010 == 1,
-      na.rm = TRUE
-    ),
-  
-  TO_MT_P_EFII =
-    sum(
-      dados_sim_2$TPMORTEOCO %in%
-        c(
-          "Na gravidez",
-          "No parto",
-          "No abortamento",
-          "Até 42 dias após o término do parto"
-        ) &
-        dados_sim_2$ESC2010 == 2,
-      na.rm = TRUE
-    ),
-  
-  TO_MT_P_EM =
-    sum(
-      dados_sim_2$TPMORTEOCO %in%
-        c(
-          "Na gravidez",
-          "No parto",
-          "No abortamento",
-          "Até 42 dias após o término do parto"
-        ) &
-        dados_sim_2$ESC2010 == 3,
-      na.rm = TRUE
-    ),
-  
-  TO_MT_P_ESI =
-    sum(
-      dados_sim_2$TPMORTEOCO %in%
-        c(
-          "Na gravidez",
-          "No parto",
-          "No abortamento",
-          "Até 42 dias após o término do parto"
-        ) &
-        dados_sim_2$ESC2010 == 4,
-      na.rm = TRUE
-    ),
-  
-  TO_MT_P_ESC =
-    sum(
-      dados_sim_2$TPMORTEOCO %in%
-        c(
-          "Na gravidez",
-          "No parto",
-          "No abortamento",
-          "Até 42 dias após o término do parto"
-        ) &
-        dados_sim_2$ESC2010 == 5,
-      na.rm = TRUE
-    )
-  
-)
-# Visualizar banco final
-SIM_BA
-names(SIM_BA)
+# 3. Gerar o resumo por município de forma limpa
+SIM_BA <- dados_para_resumo %>%
+  group_by(CODMUNRES) %>%
+  summarise(
+    ANO   = 2015,
+    NIVEL = "MU",
+    
+    TO    = n(),
+    TORC  = sum(linha_completa, na.rm = TRUE),
+    TORCR = sum(linha_completa, na.rm = TRUE),
+    
+    TO_NN = sum(substr(CAUSABAS, 1, 1) %in% c("V", "W", "X", "Y"), na.rm = TRUE),
+    TO_N  = sum(!(substr(CAUSABAS, 1, 1) %in% c("V", "W", "X", "Y")), na.rm = TRUE),
+    
+    TO_CB_I = sum(substr(CAUSABAS, 1, 1) %in% c("A", "B"), na.rm = TRUE),
+    TO_CB_N = sum(substr(CAUSABAS, 1, 1) %in% c("C", "D"), na.rm = TRUE),
+    TO_CB_C = sum(substr(CAUSABAS, 1, 1) == "I", na.rm = TRUE),
+    TO_CB_R = sum(substr(CAUSABAS, 1, 1) == "J", na.rm = TRUE),
+    TO_CB_O = sum(!(substr(CAUSABAS, 1, 1) %in% c("A", "B", "C", "D", "I", "J", "V", "W", "X", "Y")), na.rm = TRUE),
+    
+    TO_M    = sum(SEXO == "Masculino", na.rm = TRUE),
+    TO_F    = sum(SEXO == "Feminino", na.rm = TRUE),
+    TO_F_IF = sum(SEXO == "Feminino" & temp_fertil, na.rm = TRUE),
+    
+    TO_FT   = sum(TIPOBITO == "Fetal", na.rm = TRUE),
+    
+    TO_NT   = sum(TIPOBITO == "Não fetal" & temp_neo, na.rm = TRUE),
+    TO_NT_P = sum(TIPOBITO == "Não fetal" & temp_neo_p, na.rm = TRUE),
+    TO_NT_T = sum(TIPOBITO == "Não fetal" & temp_neo_t, na.rm = TRUE),
+    TO_PNT  = sum(TIPOBITO == "Não fetal" & temp_pos_neo, na.rm = TRUE),
+    
+    TO_MT_G = sum(TPMORTEOCO == "Na gravidez", na.rm = TRUE),
+    
+    TONT_B  = sum(TIPOBITO == "Não fetal" & temp_neo & RACACOR == "Branca", na.rm = TRUE),
+    TONT_PT = sum(TIPOBITO == "Não fetal" & temp_neo & RACACOR == "Preta", na.rm = TRUE),
+    TONT_A  = sum(TIPOBITO == "Não fetal" & temp_neo & RACACOR == "Amarela", na.rm = TRUE),
+    TONT_PD = sum(TIPOBITO == "Não fetal" & temp_neo & RACACOR == "Parda", na.rm = TRUE),
+    TONT_I  = sum(TIPOBITO == "Não fetal" & temp_neo & RACACOR == "Indígena", na.rm = TRUE),
+    
+    TO_MT    = sum(TPMORTEOCO %in% c("Na gravidez", "No parto", "No abortamento", "Até 42 dias após o término do parto", "De 43 dias a 1 ano após o término da gestação"), na.rm = TRUE),
+    TO_MT_DG = sum(TPMORTEOCO == "Na gravidez", na.rm = TRUE),
+    TO_MT_PT = sum(TPMORTEOCO == "No parto", na.rm = TRUE),
+    TO_MT_AB = sum(TPMORTEOCO == "No abortamento", na.rm = TRUE),
+    TO_MT_42 = sum(TPMORTEOCO == "Até 42 dias após o término do parto", na.rm = TRUE),
+    TO_MT_43 = sum(TPMORTEOCO == "De 43 dias a 1 ano após o término da gestação", na.rm = TRUE),
+    
+    TO_MT_P   = sum(TPMORTEOCO %in% c("Na gravidez", "No parto", "No abortamento", "Até 42 dias após o término do parto"), na.rm = TRUE),
+    TO_MT_P_I = sum(TPMORTEOCO %in% c("Na gravidez", "No parto", "No abortamento", "Até 42 dias após o término do parto") & temp_fertil, na.rm = TRUE),
+    
+    TO_MT_P_ES   = sum(TPMORTEOCO %in% c("Na gravidez", "No parto", "No abortamento", "Até 42 dias após o término do parto") & ESC2010 == 0, na.rm = TRUE),
+    TO_MT_P_EFI  = sum(TPMORTEOCO %in% c("Na gravidez", "No parto", "No abortamento", "Até 42 dias após o término do parto") & ESC2010 == 1, na.rm = TRUE),
+    TO_MT_P_EFII = sum(TPMORTEOCO %in% c("Na gravidez", "No parto", "No abortamento", "Até 42 dias após o término do parto") & ESC2010 == 2, na.rm = TRUE),
+    TO_MT_P_EM   = sum(TPMORTEOCO %in% c("Na gravidez", "No parto", "No abortamento", "Até 42 dias após o término do parto") & ESC2010 == 3, na.rm = TRUE),
+    TO_MT_P_ESI  = sum(TPMORTEOCO %in% c("Na gravidez", "No parto", "No abortamento", "Até 42 dias após o término do parto") & ESC2010 == 4, na.rm = TRUE),
+    TO_MT_P_ESC  = sum(TPMORTEOCO %in% c("Na gravidez", "No parto", "No abortamento", "Até 42 dias após o término do parto") & ESC2010 == 5, na.rm = TRUE)
+  ) %>%
+  relocate(ANO, NIVEL, MUNICIPIO = CODMUNRES)
 
+
+
+# 1. Criar a linha agregada da UF (Bahia = 29)
+# Nós pegamos o banco SIM_BA que você acabou de gerar e somamos todas as colunas
+SIM_LINHA_UF <- SIM_BA %>%
+  ungroup() %>% # Desagrupa para podermos somar tudo
+  summarise(
+    ANO   = 2015,
+    NIVEL = "UF",
+    MUNICIPIO = 29, # Código do estado da Bahia
+    # Somando todas as colunas numéricas automaticamente
+    across(where(is.numeric) & !c(ANO, MUNICIPIO), sum, na.rm = TRUE)
+  )
+
+# 2. Juntar a linha da UF com os municípios para criar o banco SIM_UF
+SIM_BA <- bind_rows(SIM_LINHA_UF, SIM_BA)
 
 # Tarefa 8: Exporte o banco de dados com o nome SIM_UF.csv
 write.csv(SIM_BA,
