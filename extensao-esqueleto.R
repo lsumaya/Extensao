@@ -1015,18 +1015,71 @@ View(ATLAS_BA)
 
 # Tarefa 1: Fazer o merge dos bancos de dados criados nas etapas anteriores (SIDRA_UF, ATLAS_ UF,  SINASC_UF, SIM_UF e SINISA_UF), 
 # sendo que as variáveis deverão seguir a ordem
-
 # ANO, NIVEL, CODMUNRES (uma única vez), variáveis do SIDRA, do ATLAS, do SINASC, do SIM e da SINISA. No merge deve constar qualquer município que esteja em pelo menos um dos bancos
 # Chamar o banco de dados de DA_UF
 
+library(dplyr)
+# Unindo SIDRA e ATLAS
+BD1 <- full_join(SIDRA_BA, ATLAS_BA, by = c("ANO", "NIVEL", "CODMUNRES"))
+
+# a) Renomear CODMUNRES para COD7 e garantir que seja texto
+BD1 <- BD1 %>% 
+  rename(COD7 = CODMUNRES) %>%
+  mutate(COD7 = as.character(COD7))
+
+# b) Criar a coluna temporária CODMUNRES (6 dígitos) usando case_when
+BD1 <- BD1 %>%
+  mutate(
+    CODMUNRES = case_when(
+      NIVEL == "UF"        ~ COD7,
+      NIVEL == "MUNICIPIO" ~ substr(COD7, 1, 6),
+      TRUE                 ~ COD7
+    )
+  )
+
+#Criando  o BD2 (SINASC + SIM + SINISA) - Bancos de 6 dígitos ---
+
+if("MUNICIPIO" %in% names(SINASC_BA)) SINASC_BA <- rename(SINASC_BA, CODMUNRES = MUNICIPIO)
+if("MUNICIPIO" %in% names(SIM_BA)) SIM_BA <- rename(SIM_BA, CODMUNRES = MUNICIPIO)
+if("MUNICIPIO" %in% names(SINISA_BA)) SINISA_BA <- rename(SINISA_BA, CODMUNRES = MUNICIPIO)
+
+SINASC_BA <- SINASC_BA %>% mutate(CODMUNRES = as.character(CODMUNRES))
+SIM_BA    <- SIM_BA %>% mutate(CODMUNRES = as.character(CODMUNRES))
+SINISA_BA <- SINISA_BA %>% mutate(CODMUNRES = as.character(CODMUNRES))
+
+# Unindo os três bancos
+BD2 <- SINASC_BA %>%
+  full_join(SIM_BA, by = c("ANO", "NIVEL", "CODMUNRES")) %>%
+  full_join(SINISA_BA, by = c("ANO", "NIVEL", "CODMUNRES"))
+
+#Merge Final
+
+# Unindo BD1 com BD2
+BD3 <- full_join(BD1, BD2, by = c("ANO", "NIVEL", "CODMUNRES"))
+
+
+# Excluindo a coluna CODMUNRES e Renomear COD7 de volta para CODMUNRES
+DA_BA <- BD3 %>%
+  select(-CODMUNRES) %>%
+  rename(CODMUNRES = COD7)
+
+# Manter apenas o ano de 2015 e o nível municipal
+BDEM_BA_2015 <- DA_BA %>%
+  filter(ANO == 2015, NIVEL == "MUNICIPIO")
+
 # Após o merge dos bancos, fazer commit “Script e dados agregados da UF”
 
-
 # Tarefa 2: Acrescentar no banco DA_UF os indicadores TFG, TMG, RMM, TMM, TMM_P, TMN, TMN_P, TMN_T e TMI e chamar o banco de BDEM_UF_2015
+
+
 
 # Após a criação do banco, fazer commit “Script e dados BDEM_UF_2015”
 
 # Exporte o arquivo em formato CSV# Faça o commit com a mensagem "Script e dados TAREFA 3 - ATLAS"
+
+
+
+
 
 ############################################################################################
 # ETAPA 5: EMPILHAMENTO DOS DATAFRAMES DE CADA ESTADO, GERANDO UM DATAFRAME DE 27 LINHAS
