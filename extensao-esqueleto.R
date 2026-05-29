@@ -1043,14 +1043,22 @@ if("MUNICIPIO" %in% names(SINASC_BA)) SINASC_BA <- rename(SINASC_BA, CODMUNRES =
 if("MUNICIPIO" %in% names(SIM_BA)) SIM_BA <- rename(SIM_BA, CODMUNRES = MUNICIPIO)
 if("MUNICIPIO" %in% names(SINISA_BA)) SINISA_BA <- rename(SINISA_BA, CODMUNRES = MUNICIPIO)
 
-SINASC_BA <- SINASC_BA %>% mutate(CODMUNRES = as.character(CODMUNRES))
-SIM_BA    <- SIM_BA %>% mutate(CODMUNRES = as.character(CODMUNRES))
-SINISA_BA <- SINISA_BA %>% mutate(CODMUNRES = as.character(CODMUNRES))
+SINASC_BA <- SINASC_BA %>% 
+  mutate(CODMUNRES = ifelse(NIVEL == "UF", as.character(CODMUNRES), substr(as.character(CODMUNRES), 1, 6))) %>%
+  select(-any_of("ANO"))
 
+SIM_BA <- SIM_BA %>% 
+  mutate(CODMUNRES = ifelse(NIVEL == "UF", as.character(CODMUNRES), substr(as.character(CODMUNRES), 1, 6))) %>%
+  select(-any_of("ANO"))
+
+SINISA_BA <- SINISA_BA %>% 
+  mutate(CODMUNRES = ifelse(NIVEL == "UF", as.character(CODMUNRES), substr(as.character(CODMUNRES), 1, 6))) %>%
+  select(-any_of("ANO"))
 # Unindo os três bancos
 BD2 <- SINASC_BA %>%
-  full_join(SIM_BA, by = c("ANO", "NIVEL", "CODMUNRES")) %>%
-  full_join(SINISA_BA, by = c("ANO", "NIVEL", "CODMUNRES"))
+  full_join(SIM_BA, by = c("NIVEL", "CODMUNRES")) %>%
+  full_join(SINISA_BA, by = c("NIVEL", "CODMUNRES")) %>%
+  mutate(ANO = 2015)
 
 #Merge Final
 
@@ -1120,6 +1128,7 @@ dim(BDEM_BA_2015)
 View(BDEM_BA_2015)
 table(BDEM_BA_2015$NIVEL)
 sum(duplicated(BDEM_BA_2015$CODMUNRES))
+
 # Após a criação do banco, fazer commit “Script e dados BDEM_UF_2015”
 
 
