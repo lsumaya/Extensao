@@ -1067,12 +1067,59 @@ DA_BA <- BD3 %>%
 BDEM_BA_2015 <- DA_BA %>%
   filter(ANO == 2015, NIVEL == "MUNICIPIO")
 
+write.csv(DA_BA, "DA_BA.csv", row.names = FALSE)
 # Após o merge dos bancos, fazer commit “Script e dados agregados da UF”
 
 # Tarefa 2: Acrescentar no banco DA_UF os indicadores TFG, TMG, RMM, TMM, TMM_P, TMN, TMN_P, TMN_T e TMI e chamar o banco de BDEM_UF_2015
 
+BDEM_BA_2015 <- BDEM_BA_2015 %>%
+  mutate(
+    TFG   = ifelse(!is.na(POPRC_F_15_49) & POPRC_F_15_49 > 0,
+                   (TN / POPRC_F_15_49) * 1000,
+                   NA_real_),
+    
+    TMG   = ifelse(!is.na(POPRE_T) & POPRE_T > 0,
+                   (TO / POPRE_T) * 1000,
+                   NA_real_),
+    
+    RMM   = ifelse(!is.na(TN) & TN > 0,
+                   (TO_MT / TN) * 100000,
+                   NA_real_),
+    
+    TMM   = ifelse(!is.na(POPRC_F_15_49) & POPRC_F_15_49 > 0,
+                   (TO_MT / POPRC_F_15_49) * 100000,
+                   NA_real_),
+    
+    TMM_P = ifelse(!is.na(POPRC_F_15_49) & POPRC_F_15_49 > 0,
+                   (TO_MT_P / POPRC_F_15_49) * 100000,
+                   NA_real_),
+    
+    TMN   = ifelse(!is.na(TN) & TN > 0,
+                   (TO_NT / TN) * 1000,
+                   NA_real_),
+    
+    TMN_P = ifelse(!is.na(TN) & TN > 0,
+                   (TO_NT_P / TN) * 1000,
+                   NA_real_),
+    
+    TMN_T = ifelse(!is.na(TN) & TN > 0,
+                   (TO_NT_T / TN) * 1000,
+                   NA_real_),
+    
+    TMI   = ifelse(!is.na(TN) & TN > 0,
+                   ((TO_NT + TO_PNT) / TN) * 1000,
+                   NA_real_)
+  )
 
+BDEM_BA_2015 <- BDEM_BA_2015 %>% relocate(ANO, NIVEL, CODMUNRES)
 
+write.csv(BDEM_BA_2015, "BDEM_BA_2015.csv", row.names = FALSE)
+
+#verificando
+dim(BDEM_BA_2015)
+View(BDEM_BA_2015)
+table(BDEM_BA_2015$NIVEL)
+sum(duplicated(BDEM_BA_2015$CODMUNRES))
 # Após a criação do banco, fazer commit “Script e dados BDEM_UF_2015”
 
 # Exporte o arquivo em formato CSV# Faça o commit com a mensagem "Script e dados TAREFA 3 - ATLAS"
